@@ -13,6 +13,9 @@ import {
   ContentLayout,
 } from "@strapi/design-system/Layout";
 
+import { LoadingIndicatorPage } from "@strapi/helper-plugin";
+import todoRequests from "../../api/todo";
+
 import { EmptyStateLayout } from "@strapi/design-system/EmptyStateLayout";
 import { Button } from "@strapi/design-system/Button";
 import Plus from "@strapi/icons/Plus";
@@ -27,21 +30,47 @@ const HomePage = () => {
   const [showModal, setShowModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
+  const fetchData = async () => {
+    if (isLoading === false) setIsLoading(true);
+
+    try {
+      const todo = await todoRequests.getAllTodos();
+      setTodoData(todo);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const initFetchData = async () => {
+      await fetchData();
+    };
+
+    initFetchData();
+  }, []);
+
   async function addTodo(data) {
-    setTodoData([...todoData, { ...data, id: nanoid(), isDone: false }]);
+    await todoRequests.addTodo(data);
+    await fetchData();
   }
 
   async function toggleTodo(data) {
-    alert("Add Toggle Todo in API");
+    await todoRequests.toggleTodo(data.id);
   }
 
   async function deleteTodo(data) {
-    alert("Add Delete Todo in API");
+    await todoRequests.deleteTodo(data.id);
+    await fetchData();
   }
 
   async function editTodo(id, data) {
-    alert("Add Edit Todo in API");
+    await todoRequests.editTodo(id, data);
+    await fetchData();
   }
+
+  if (isLoading) return <LoadingIndicatorPage />;
 
 
   return (
